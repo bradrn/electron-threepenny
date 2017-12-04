@@ -1,0 +1,52 @@
+<html>
+
+  <head>
+
+    <title>Frameless Window</title>
+
+    <link rel="stylesheet" type="text/css" href="style.css" />
+
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="haskell.css"/>
+
+    <!-- See https://stackoverflow.com/a/37480521  -->
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <script src="haskell.js"></script>
+    <script>if (window.module) module = window.module;</script>
+
+    <script type="text/javascript" charset="utf-8">
+        Haskell.initFFI();
+    </script>
+  </head>
+
+  <body>
+
+    <div id="content">
+
+      <div id="inner-content">
+
+        Select the titlebar to enable:<br/>
+        <input type="checkbox" id="top-box">Top Titlebar <br/>
+        <input type="checkbox" id="bottom-box">Bottom Titlebar <br/>
+        <input type="checkbox" id="left-box">Left Titlebar <br/>
+        <input type="checkbox" id="right-box">Right Titlebar <br/>
+        <br/>
+
+        <button id="close-window-button">Close Window</button>
+        <button id="minimize-window-button">Mnimize Window</button>
+        <button id="maximize-window-button">Maximize Window</button>
+        <button id="unmaximize-window-button">Restore Window</button>
+        <button id="toggle-window-button">Toggle FullScreen</button>
+        <button id="maxmin-window-button">Toggle Maximized</button> <br/>
+
+        <button id="min">_</button>
+        <button id="max">=</button>
+        <button id="exit">X</button>
+
+      </div>
+
+    </div>
+
+  </body>
+
+</html>

@@ -1,0 +1,26 @@
+name:                electron-threepenny-lib
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/githubuser/electron-threepenny-lib#readme
+license:             MIT
+license-file:        LICENSE
+copyright:           2017
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      lib
+  exposed-modules:     Electron.Threepenny.Core
+                     , Electron.Threepenny.BrowserWindow
+                     , Electron.Threepenny.Menu
+                     , Electron.Threepenny.Menu.Types
+  other-modules:       Electron.Threepenny.JSRep
+  build-depends:       base
+                     , threepenny-gui >= 0.8.2.0
+                     , aeson >= 1.1
+                     , unordered-containers >= 0.2
+                     , text >= 1.2
+                     , scientific >= 0.3
+  default-language:    Haskell2010

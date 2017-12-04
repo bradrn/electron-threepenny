@@ -1,0 +1,212 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE InstanceSigs #-}
+
+module Electron.Threepenny where
+
+import Data.List                   (intercalate)
+import Data.Maybe                  (catMaybes)
+import Language.Javascript.JMacro
+import Graphics.UI.Threepenny.Core
+import Foreign.JavaScript           (IsHandler)
+import Control.Monad                (void)
+
+data KeyModifier = Cmd | Ctrl | CmdOrCtrl | Alt | Option | AltGr | Shift | Super deriving (Show)
+data Key = Key Char
+         | Function Int
+         | KeyPlus
+         | KeySpace
+         | KeyTab
+         | KeyBackspace
+         | KeyDelete
+         | KeyInsert
+         | KeyReturn
+         | KeyUp
+         | KeyDown
+         | KeyLeft
+         | KeyRight
+         | KeyHome
+         | KeyEnd
+         | KeyPageUp
+         | KeyPageDown
+         | KeyEsc
+         | KeyVolumeUp
+         | KeyVolumeDown
+         | KeyVolumeMute
+         | KeyMediaNextTrack
+         | KeyMediaPreviousTrack
+         | KeyMediaStop
+         | KeyMediaPlayPause
+         | KeyPrintScreen
+instance Show Key where
+    show (Key c) = [c]
+    show (Function f) = "F" ++ show f
+    show KeyPlus = "Plus"
+    show KeySpace = "Space"
+    show KeyTab = "Tab"
+    show KeyBackspace = "Backspace"
+    show KeyDelete = "Delete"
+    show KeyInsert = "Insert"
+    show KeyReturn = "Return"
+    show KeyUp = "Up"
+    show KeyDown = "Down"
+    show KeyLeft = "Left"
+    show KeyRight = "Right"
+    show KeyHome = "Home"
+    show KeyEnd = "End"
+    show KeyPageUp = "PageUp"
+    show KeyPageDown = "PageDown"
+    show KeyEsc = "Esc"
+    show KeyVolumeUp = "VolumeUp"
+    show KeyVolumeDown = "VolumeDown"
+    show KeyVolumeMute = "VolumeMute"
+    show KeyMediaNextTrack = "MediaNextTrack"
+    show KeyMediaPreviousTrack = "MediaPreviousTrack"
+    show KeyMediaStop = "MediaStop"
+    show KeyMediaPlayPause = "MediaPlayPause"
+    show KeyPrintScreen = "PrintScreen"
+
+data Accelerator = Accelerator [KeyModifier] Key
+instance Show Accelerator where
+    --show (Accelerator []     k) = "\"" ++ show k ++ "\""
+    --show (Accelerator (m:ms) k) = "\"" ++ show m ++ "+" ++ show (Accelerator ms k) ++ "\""
+    show (Accelerator m k) = "\"" ++ m' ++ show k ++ "\""
+      where
+        m' = (intercalate "+" $ fmap show m) ++ "+"
+
+
+data Role = Undo
+          | Redo
+          | Cut
+          | Copy
+          | Paste
+          | PasteAndMatchStyle
+          | SelectAll
+          | Delete
+          | Minimize
+          | Close
+          | Quit
+          | Reload
+          | ForceReload
+          | ToggleDevTools
+          | ToggleFullScreen
+          | ResetZoom
+          | ZoomIn
+          | ZoomOut
+          | EditMenu
+          | WindowMenu
+          | About
+          | Hide
+          | HideOthers
+          | Unhide
+          | StartSpeaking
+          | StopSpeaking
+          | Front
+          | Zoom
+          | Window
+          | Help
+          | Services
+instance Show Role where
+    show Undo               = "\"undo\""
+    show Redo               = "\"redo\""
+    show Cut                = "\"cut\""
+    show Copy               = "\"copy\""
+    show Paste              = "\"paste\""
+    show PasteAndMatchStyle = "\"pasteandmatchstyle\""
+    show SelectAll          = "\"selectall\""
+    show Delete             = "\"delete\""
+    show Minimize           = "\"minimize\""
+    show Close              = "\"close\""
+    show Quit               = "\"quit\""
+    show Reload             = "\"reload\""
+    show ForceReload        = "\"forcereload\""
+    show ToggleDevTools     = "\"toggledevtools\""
+    show ToggleFullScreen   = "\"togglefullscreen\""
+    show ResetZoom          = "\"resetzoom\""
+    show ZoomIn           = "\"zoomin\""
+    show ZoomOut            = "\"zoomout\""
+    show EditMenu           = "\"editMenu\""
+    show WindowMenu         = "\"windowMenu\""
+    show About              = "\"about\""
+    show Hide               = "\"hide\""
+    show HideOthers         = "\"hideothers\""
+    show Unhide             = "\"unhide\""
+    show StartSpeaking      = "\"startspeaking\""
+    show StopSpeaking       = "\"stopspeaking\""
+    show Front              = "\"front\""
+    show Zoom               = "\"zoom\""
+    show Window             = "\"window\""
+    show Help               = "\"help\""
+    show Services           = "\"services\""
+
+data Type = Normal | Separator | Submenu | Checkbox | Radio
+instance Show Type where
+    show Normal    = "\"normal\""
+    show Separator = "\"separator\""
+    show Submenu   = "\"submenu\""
+    show Checkbox  = "\"checkbox\""
+    show Radio     = "\"radio\""
+
+newtype FunExpr = FunExpr String
+instance Show FunExpr where
+    show (FunExpr e) = e
+
+data MenuItem = MenuItem
+    { menuClick       :: Maybe FunExpr
+    , menuRole        :: Maybe Role
+    , menuType        :: Maybe Type
+    , menuLabel       :: Maybe String
+    , menuSublabel    :: Maybe String
+    , menuAccelerator :: Maybe Accelerator
+    , menuIcon        :: Maybe String
+    , menuEnabled     :: Maybe Bool
+    , menuVisible     :: Maybe Bool
+    , menuChecked     :: Maybe Bool
+    , menuSubmenu     :: Maybe Menu
+    , menuId          :: Maybe String
+    , menuPosition    :: Maybe String
+    }
+mkMenu = MenuItem
+    { menuClick        = Nothing
+    , menuRole         = Nothing
+    , menuType         = Nothing
+    , menuLabel        = Nothing
+    , menuSublabel     = Nothing
+    , menuAccelerator  = Nothing
+    , menuIcon         = Nothing
+    , menuEnabled      = Nothing
+    , menuVisible      = Nothing
+    , menuChecked      = Nothing
+    , menuSubmenu      = Nothing
+    , menuId           = Nothing
+    , menuPosition     = Nothing
+    }
+instance Show MenuItem where
+    show item =
+        let labels = catMaybes [ mkLabel "click"       (menuClick       item)
+                               , mkLabel "role"        (menuRole        item)
+                               , mkLabel "type"        (menuType        item)
+                               , mkLabel "label"       (menuLabel       item)
+                               , mkLabel "sublabel"    (menuSublabel    item)
+                               , mkLabel "accelerator" (menuAccelerator item)
+                               , mkLabel "icon"        (menuIcon        item)
+                               , mkLabel "enabled"     (menuEnabled     item)
+                               , mkLabel "visible"     (menuVisible     item)
+                               , mkLabel "checked"     (menuChecked     item)
+                               , mkLabel "submenu"     (menuSubmenu     item)
+                               , mkLabel "id"          (menuId          item)
+                               , mkLabel "position"    (menuPosition    item)
+                               ]
+        in "{" ++ intercalate "," labels ++ "}"
+      where
+        mkLabel :: (Show s) => String -> Maybe s -> Maybe String
+        mkLabel label = fmap (\s -> label ++ ": " ++ show s)
+
+type Menu = [MenuItem]
+
+mkTemplate :: Menu -> String
+mkTemplate = (("["++).(++"]")) . intercalate "," . fmap show
+
+addMenu :: Menu -> String
+addMenu menu = "require('electron').remote.Menu.setApplicationMenu(require('electron').remote.Menu.buildFromTemplate(" ++ mkTemplate menu ++ "))"

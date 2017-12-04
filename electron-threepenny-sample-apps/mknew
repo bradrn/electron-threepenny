@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+cp YourApp/ $1 -r
+cd $1
+find ./ -type f -readable -writable -exec sed -i "s/YourApp/$1/g" {} \;
+mv YourApp.cabal $1.cabal
