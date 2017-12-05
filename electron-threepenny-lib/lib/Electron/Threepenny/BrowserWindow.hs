@@ -46,6 +46,7 @@ getFocusedWindow :: JSModule "electron" -> UI BrowserWindow
 getFocusedWindow electron = BrowserWindow <$> (callFunction $ ffi "%1.remote.BrowserWindow.getFocusedWindow()" electron :: UI JSObject)
 
 destroy      = mkBrowserWindowMethod "destroy"
+close        = mkBrowserWindowMethod "close"
 focus        = mkBrowserWindowMethod "focus"
 blur         = mkBrowserWindowMethod "blur"
 isFocused    = mkBrowserWindowMethod "isFocused"
