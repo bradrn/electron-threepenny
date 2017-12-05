@@ -4,7 +4,6 @@ version:             0.1.0.0
 -- description:
 build-type:          Simple
 cabal-version:       >=1.10
-extra-source-files:  README.md
 
 executable menus
   hs-source-dirs:      src
