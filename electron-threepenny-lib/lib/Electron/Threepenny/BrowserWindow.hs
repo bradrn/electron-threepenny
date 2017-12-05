@@ -45,28 +45,28 @@ newtype BrowserWindow = BrowserWindow JSObject deriving (ToJS)
 getFocusedWindow :: JSModule "electron" -> UI BrowserWindow
 getFocusedWindow electron = BrowserWindow <$> (callFunction $ ffi "%1.remote.BrowserWindow.getFocusedWindow()" electron :: UI JSObject)
 
-destroy      = mkBrowserWindowMethod "destroy"
-close        = mkBrowserWindowMethod "close"
-focus        = mkBrowserWindowMethod "focus"
-blur         = mkBrowserWindowMethod "blur"
-isFocused    = mkBrowserWindowMethod "isFocused"
-isDestroyed  = mkBrowserWindowMethod "isDestroyed"
-show_        = mkBrowserWindowMethod "show"
-showInactive = mkBrowserWindowMethod "showInactive"
-hide         = mkBrowserWindowMethod "hide"
-isVisible    = mkBrowserWindowMethod "isVisible"
-isModal      = mkBrowserWindowMethod "isModal"
-maximize     = mkBrowserWindowMethod "maximize"
-unmaximize   = mkBrowserWindowMethod "unmaximize"
-isMaximized  = mkBrowserWindowMethod "isMaximized"
-minimize     = mkBrowserWindowMethod "minimize"
-restore      = mkBrowserWindowMethod "restore"
-isMinimized  = mkBrowserWindowMethod "isMinimized"
+destroy      = mkBrowserWindowMethodRun  "destroy"
+close        = mkBrowserWindowMethodRun  "close"
+focus        = mkBrowserWindowMethodRun  "focus"
+blur         = mkBrowserWindowMethodRun  "blur"
+isFocused    = mkBrowserWindowMethodPred "isFocused"
+isDestroyed  = mkBrowserWindowMethodPred "isDestroyed"
+show_        = mkBrowserWindowMethodRun  "show"
+showInactive = mkBrowserWindowMethodRun  "showInactive"
+hide         = mkBrowserWindowMethodRun  "hide"
+isVisible    = mkBrowserWindowMethodPred "isVisible"
+isModal      = mkBrowserWindowMethodPred "isModal"
+maximize     = mkBrowserWindowMethodRun  "maximize"
+unmaximize   = mkBrowserWindowMethodRun  "unmaximize"
+isMaximized  = mkBrowserWindowMethodPred "isMaximized"
+minimize     = mkBrowserWindowMethodRun  "minimize"
+restore      = mkBrowserWindowMethodRun  "restore"
+isMinimized  = mkBrowserWindowMethodPred "isMinimized"
 
 setFullScreen :: BrowserWindow -> Bool -> UI ()
 setFullScreen = mkBrowserWindowMethodArg "setFullScreen"
 
-isFullScreen = mkBrowserWindowMethod "isFullScreen"
+isFullScreen = mkBrowserWindowMethodPred "isFullScreen"
 
 setAspectRatio :: BrowserWindow -> Float -> Maybe (Float, Float) -> UI ()
 setAspectRatio win aspectRatio extraSize = runFunction $
@@ -80,7 +80,7 @@ previewFile win path displayName = runFunction $
         Nothing -> ffi "%1.previewFile(%2)" path
         Just displayName' -> ffi "%1.previewFile(%2, %3)" path displayName'
 
-closeFilePreview = mkBrowserWindowMethod "closeFilePreview"
+closeFilePreview = mkBrowserWindowMethodRun "closeFilePreview"
 
 setBounds :: BrowserWindow -> Rectangle -> Maybe Bool -> UI ()
 setBounds win rect animate = runFunction $
@@ -118,34 +118,34 @@ getBounds win = do
 
 setResizable :: BrowserWindow -> Bool -> UI ()
 setResizable = mkBrowserWindowMethodArg "setResizable"
-isResizable  = mkBrowserWindowMethod "isResizable"
+isResizable  = mkBrowserWindowMethodPred "isResizable"
 
 setMovable :: BrowserWindow -> Bool -> UI ()
 setMovable = mkBrowserWindowMethodArg "setMovable"
-isMovable  = mkBrowserWindowMethod "isMovable"
+isMovable  = mkBrowserWindowMethodPred "isMovable"
 
 setMinimizable :: BrowserWindow -> Bool -> UI ()
 setMinimizable = mkBrowserWindowMethodArg "setMinimizable"
-isMinimizable  = mkBrowserWindowMethod "isMinimizable"
+isMinimizable  = mkBrowserWindowMethodPred "isMinimizable"
 
 setMaximizable :: BrowserWindow -> Bool -> UI ()
 setMaximizable = mkBrowserWindowMethodArg "setMaximizable"
-isMaximizable  = mkBrowserWindowMethod "isMaximizable"
+isMaximizable  = mkBrowserWindowMethodPred "isMaximizable"
 
 setFullScreenable :: BrowserWindow -> Bool -> UI ()
 setFullScreenable = mkBrowserWindowMethodArg "setFullScreenable"
-isFullScreenable  = mkBrowserWindowMethod "isFullScreenable"
+isFullScreenable  = mkBrowserWindowMethodPred "isFullScreenable"
 
 setClosable :: BrowserWindow -> Bool -> UI ()
 setClosable = mkBrowserWindowMethodArg "setClosable"
-isClosable  = mkBrowserWindowMethod "isClosable"
+isClosable  = mkBrowserWindowMethodPred "isClosable"
 
 setAlwaysOnTop :: BrowserWindow -> Bool -> Maybe MacWindowLevel -> Maybe Int -> UI ()
 setAlwaysOnTop win flag level relativeLevel = runFunction $ ffi js win (jsRep $ fromJust level) (fromJust relativeLevel)
   where
     js = "%1.setAlwaysOnTop(%2" ++ maybe "" (const ",%3") level ++ maybe "" (const ",%4") level
 
-isAlwaysOnTop = mkBrowserWindowMethod "isAlwaysOnTop"
+isAlwaysOnTop = mkBrowserWindowMethodPred "isAlwaysOnTop"
 
 --TODO: `center` etc.
 
@@ -177,8 +177,15 @@ instance JSRep MacWindowLevel where
   jsRep ScreenSaver = "screen-saver"
   jsRep Dock = "dock"
 
-mkBrowserWindowMethod :: String -> (BrowserWindow -> UI ())
-mkBrowserWindowMethod m = \win -> runFunction $ ffi ("%1." ++ m ++ "()") win
+mkBrowserWindowMethodRun :: String -> (BrowserWindow -> UI ())
+mkBrowserWindowMethodRun m = \win -> runFunction $ ffi ("%1." ++ m ++ "()") win
+
+mkBrowserWindowMethodPred :: String -> (BrowserWindow -> UI Bool)
+mkBrowserWindowMethodPred m = \win -> do
+    val :: Value <- callFunction $ ffi ("%1." ++ m ++ "()") win
+    case val of
+        Bool b -> return b
+        _ -> error "The impossible happened! An Electron method was documented as returning a boolean, but it returned something else. Please report this to the developer as an issue."
 
 mkBrowserWindowMethodArg :: ToJS a => String -> (BrowserWindow -> a -> UI ())
 mkBrowserWindowMethodArg m = \win arg -> runFunction $ ffi ("%1." ++ m ++ "(%2)") win arg
