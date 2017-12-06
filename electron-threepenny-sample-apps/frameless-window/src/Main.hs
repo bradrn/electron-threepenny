@@ -28,7 +28,7 @@ main = do
 setup :: Window -> UI ()
 setup window = do
     electron :: JSModule "electron" <- require
-    win :: JSObject <- callFunction $ ffi "%1.remote.BrowserWindow.getFocusedWindow()" electron
+    win <- getFocusedWindow
 
     topCheckbox    <- getElementById' window "top-box"
     bottomCheckbox <- getElementById' window "bottom-box"
@@ -60,7 +60,7 @@ setup window = do
     maxButton <- getElementById' window "max"
     exitButton <- getElementById' window "exit"
 
-    onEvent (UI.click closeButton)      $ const $ runFunction $ ffi "%1.close()" win
+    onEvent (UI.click closeButton)      $ const $ close win
     onEvent (UI.click minimizeButton)   $ const $ runFunction $ ffi "%1.minimize()" win
     onEvent (UI.click maximizeButton)   $ const $ runFunction $ ffi "%1.maximize()"
     onEvent (UI.click unmaximizeButton) $ const $ runFunction $ ffi "%1.unmaximize()"

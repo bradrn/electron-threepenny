@@ -17,6 +17,8 @@ library
                      , Electron.Threepenny.Menu
                      , Electron.Threepenny.Menu.Types
   other-modules:       Electron.Threepenny.JSRep
+                     , Electron.Threepenny.BrowserWindow.BrowserWindow
+                     , Electron.Threepenny.BrowserWindow.Definitions
   build-depends:       base
                      , threepenny-gui >= 0.8.2.0
                      , aeson >= 1.1
