@@ -27,8 +27,8 @@ main = do
 
 setup :: Window -> UI ()
 setup window = do
-    electron :: JSModule "electron" <- require
-    win <- getFocusedWindow
+    electron <- require
+    win <- getFocusedWindow electron
 
     topCheckbox    <- getElementById' window "top-box"
     bottomCheckbox <- getElementById' window "bottom-box"
@@ -61,12 +61,10 @@ setup window = do
     exitButton <- getElementById' window "exit"
 
     onEvent (UI.click closeButton)      $ const $ close win
-    onEvent (UI.click minimizeButton)   $ const $ runFunction $ ffi "%1.minimize()" win
-    onEvent (UI.click maximizeButton)   $ const $ runFunction $ ffi "%1.maximize()"
-    onEvent (UI.click unmaximizeButton) $ const $ runFunction $ ffi "%1.unmaximize()"
-    onEvent (UI.click toggleButton)     $ const $ do
-        isFullScreen <- fmap (==1) $ (callFunction $ ffi "Number(%1.isFullScreen())" win :: UI Int)
-        runFunction $ ffi "%1.setFullScreen(%2)" win (not isFullScreen)
+    onEvent (UI.click minimizeButton)   $ const $ minimize win
+    onEvent (UI.click maximizeButton)   $ const $ maximize win
+    onEvent (UI.click unmaximizeButton) $ const $ unmaximize win
+    onEvent (UI.click toggleButton)     $ const (isFullScreen win >>= (setFullScreen win . not))
 
     runOnFocus <- ffiExport $ runUI window $ do
         runFunction $ ffi "console.log('focus')"
